@@ -1,0 +1,83 @@
+# 投标报价计算器 - 网关规则
+# 设计要点：
+# 1) 多级路径直接访问 / 刷新：非静态资源统一回退到 /index.html（同一入口）
+# 2) 缓存分层：入口 HTML 不缓存（每次协商校验，发布后立即生效）；
+#    无指纹的 js/css 短缓存 + ETag 协商；带内容哈希的 assets/ 长期 immutable
+# 3) 缺失的静态资源直接 404，绝不回退成 index.html（避免 HTML 被当作 JS 执行而白屏）
+# 4) 4xx/5xx 返回自包含的可读错误页，不出现空白页
+# 5) 安全头统一在 snippets/security-headers.conf 维护，内嵌策略可经环境变量配置
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # ---------- 压缩 ----------
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_types
+        text/plain
+        text/css
+        text/xml
+        application/json
+        application/javascript
+        application/xml
+        application/xml+rss
+        image/svg+xml;
+
+    charset utf-8;
+    charset_types text/css text/plain application/javascript application/json image/svg+xml;
+
+    # 502/503/504 等网关异常：可读提示页
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        internal;
+        include /etc/nginx/snippets/security-headers.conf;
+    }
+
+    # 缺失资源的 404：可读提示页（不做 SPA 回退）
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+        include /etc/nginx/snippets/security-headers.conf;
+    }
+
+    # ---------- 入口 HTML：不缓存，保证发布后立即拿到新版本 ----------
+    location = / {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files /index.html =404;
+    }
+
+    location = /index.html {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    # ---------- 带内容哈希的指纹资源（如 /assets/app-a1b2c3d4.js）：长期强缓存 ----------
+    location ^~ /assets/ {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # ---------- 普通静态资源：短缓存 + ETag 协商，缺失直接 404，不回退 ----------
+    location ~* \.(?:js|css|png|jpe?g|gif|ico|svg|webp|woff2?|ttf|eot|map|json|txt|xml)$ {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "public, max-age=300, must-revalidate" always;
+        try_files $uri =404;
+    }
+
+    # ---------- SPA 入口回退：多级路径直接进入 / 刷新都落到同一页面 ----------
+    location / {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/ /index.html;
+    }
+}

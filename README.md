@@ -10,11 +10,22 @@ docker compose up --build -d
 docker compose down
 ```
 
-## Services
+## 服务
 
 | 服务 | 端口 | 地址 |
 |------|------|------|
 | 前端应用 | 8082 | http://localhost:8082 |
+
+## 网关规则说明
+
+Nginx 配置以模板形式放在 `frontend-user/templates/`，容器启动时由官方镜像的
+envsubst 机制渲染到 `/etc/nginx`：
+
+- **多级路径直达 / 刷新**：非静态资源统一回退到 `index.html`，多级路径直接进入或刷新都落在同一页面；缺失的静态资源（js/css 等）直接返回 404，不回退成 HTML，避免页面拿到错误内容而白屏。
+- **缓存**：入口 HTML `no-cache`（每次协商校验，发布后立即生效）；无指纹的 js/css 使用短缓存 + ETag 协商（`max-age=300, must-revalidate`）；带内容哈希的 `/assets/*` 资源长期 `immutable` 缓存。
+- **内嵌（iframe）**：使用 CSP `frame-ancestors` 控制，默认 `*` 允许任意页面内嵌；通过环境变量 `FRAME_ANCESTORS` 收紧（在 `docker-compose.yml` 的 `environment` 中设置，如 `'self'` 或 `'self' https://example.com`）。
+- **异常页**：404 与 5xx 返回自包含的中文提示页（`404.html` / `50x.html`），不出现空白页。
+- **压缩**：对文本类响应启用 gzip（`Vary: Accept-Encoding`）。
 
 ## 测试账号
 

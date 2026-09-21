@@ -1,0 +1,9 @@
+# 全站安全响应头（每个需要对外输出头的 location 都必须 include，
+# 因为 nginx 中 location 自己使用 add_header 后会丢弃上层继承的头）
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+# 内嵌策略：默认允许任意页面通过 iframe 内嵌；需要限制时设置环境变量
+# FRAME_ANCESTORS，例如 "'self' https://example.com"。
+# 这里不再下发 X-Frame-Options（它只支持 DENY/SAMEORIGIN，会直接阻断内嵌）。
+add_header Content-Security-Policy "frame-ancestors ${FRAME_ANCESTORS}" always;

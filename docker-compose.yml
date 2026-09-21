@@ -7,6 +7,12 @@ services:
     ports:
       - "8082:80"
     restart: unless-stopped
+    # 允许 iframe 内嵌本页面的来源（CSP frame-ancestors）。
+    # 默认 * 允许任意站点内嵌；如需收紧，取消下一行注释：
+    #   仅同源：      "'self'"
+    #   指定站点：    "'self' https://example.com"
+    # environment:
+    #   FRAME_ANCESTORS: "*"
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
       interval: 30s

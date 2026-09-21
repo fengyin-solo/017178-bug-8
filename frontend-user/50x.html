@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务暂时不可用 - 投标报价计算器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                         "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: #f8fafc;
+            color: #334155;
+        }
+        .card {
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 40px 28px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, .06);
+        }
+        .code { font-size: 56px; font-weight: 700; color: #f59e0b; line-height: 1; }
+        h1 { font-size: 18px; margin: 16px 0 8px; color: #1e293b; }
+        p { font-size: 14px; line-height: 1.7; color: #64748b; }
+        .actions { margin-top: 24px; }
+        button {
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            background: #6366f1;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button:hover { opacity: .88; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="code">50x</div>
+        <h1>服务暂时不可用</h1>
+        <p>网关或服务暂时出现异常，请稍后重试。若长时间无法访问，请联系管理员。</p>
+        <div class="actions">
+            <button type="button" onclick="location.reload()">重新加载</button>
+        </div>
+    </div>
+</body>
+</html>
