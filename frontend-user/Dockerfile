@@ -7,12 +7,13 @@ WORKDIR /usr/share/nginx/html
 # 删除默认页面
 RUN rm -rf ./*
 
-# 复制静态文件
-COPY index.html .
+# 复制静态文件（含自定义错误页）
+COPY index.html 404.html 50x.html ./
 COPY css/ ./css/
 COPY js/ ./js/
 
-# 复制 nginx 配置
+# 复制 nginx 配置与公共片段
+COPY snippets/ /etc/nginx/snippets/
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # 暴露端口
